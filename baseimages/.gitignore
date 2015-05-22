@@ -1,0 +1,4 @@
+bitergia-docker
+bitergia-docker.pub
+*.tar
+*-rootfs/
