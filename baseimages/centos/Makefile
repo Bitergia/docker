@@ -31,6 +31,7 @@ rootfs-fixes = \
 	add-non-root-user \
 	install-insecure-ssh-key \
 	install-sudo \
+	fix-shutdown \
 	remove-unneeded-files
 
 username = bitergia
@@ -151,6 +152,9 @@ install-sudo: add-non-root-user
 	@$(chroot_cmd) sed -e 's|^# %wheel	ALL=(ALL)	NOPASSWD: ALL|%wheel	ALL=(ALL)	NOPASSWD: ALL|' -i /etc/sudoers
 	@$(chroot_cmd) usermod --append --groups wheel $(username)
 	@$(chroot_cmd) sed -e 's|^Default.*requiretty|#&|' -i /etc/sudoers
+
+fix-shutdown:
+	cp shutdown.conf $(ROOTFS)/etc/init/shutdown.conf
 
 .PHONY: check-whoami
 check-whoami:
