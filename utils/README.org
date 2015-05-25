@@ -1,0 +1,12 @@
+Here you can find some scripts and utilities to use when using our
+baseimages.
+
+* docker-stop
+
+This script sends the SIGPWR signal to /sbin/init inside the
+container, triggering the shutdown process and allowing the running
+services to cleanly shutdown.
+
+#+BEGIN_SRC shell-script
+docker-stop <container-id> [<container-id>...]
+#+END_SRC

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+TIMEOUT=10
+
+function usage() {
+    echo "Usage: $(basename $0) <container-id> [<container-id>]"
+    exit 1
+}
+
+if [ $# -lt 1 ]; then
+    usage
+fi
+
+for container_id in $* ; do
+    echo -n "Stopping container... "
+    
+    docker kill -s PWR ${container_id} 2>&1 >/dev/null
+
+    # wait for all processes but init to stop
+    for t in $( seq 0 $TIMEOUT ) ; do 
+	if [ $( docker top ${container_id} -x | grep -v ^PID | grep -v -F "/sbin/init" | wc -l ) -ne 0 ]; then
+            sleep 1
+	fi
+    done
+    docker stop ${container_id}
+done
