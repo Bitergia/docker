@@ -1,0 +1,44 @@
+#!/bin/bash
+
+declare -a ssh_opts=(StrictHostKeyChecking=no UserKnownHostsFile=/dev/null)
+default_ssh_keyfile="${HOME}/.ssh/bitergia-docker"
+
+function usage() {
+    echo "Usage: $(basename $0) [ssh options] <user>@<container-id> [command]"
+    exit 1
+}
+
+function set_ssh_opts () {
+    local opts=""
+    for opt in "${ssh_opts[@]}" ; do
+	opts="-o ${opt} ${opts}"
+    done
+    echo -n "${opts}"
+}
+
+function add_ssh_key () {
+    local params=$*
+    if [[ ! "${params}" =~ -i\  ]]; then
+	params="-i ${default_ssh_keyfile} ${params}"
+    fi
+    echo -n "${params}"
+}
+
+if [ $# -lt 1 ]; then
+    usage
+fi
+
+if [[ "$*" =~ @([^\ ]+)\ *  ]]; then
+    container_id=${BASH_REMATCH[1]}
+fi
+
+# get container IP
+container_ip=$( docker inspect -f "{{ .NetworkSettings.IPAddress }}" ${container_id} )
+
+# replace container ID with container IP
+
+params=$( echo "$*" | sed -e "s/@${container_id}/@${container_ip}/g" )
+ssh_params=$(set_ssh_opts)
+params=$(add_ssh_key ${params})
+
+exec ssh ${ssh_params} ${params}

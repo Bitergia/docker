@@ -10,3 +10,21 @@ services to cleanly shutdown.
 #+BEGIN_SRC shell-script
 docker-stop <container-id> [<container-id>...]
 #+END_SRC
+
+* docker-ssh
+
+This script helps using ssh to log into a running container by setting
+some default options and looking up the container ip from the
+container name.
+
+#+BEGIN_SRC shell-script
+docker-ssh [ssh options] <user>@<container-id> [command]
+#+END_SRC
+
+When using our baseimages, the default ssh private key is
+${HOME}/.ssh/bitergia-docker.  To use another identity, add the -i
+parameter with the desired key.
+
+#+BEGIN_SRC shell-script
+docker-ssh [ssh options] -i /path/to/my/private-key <user>@<container-id> [command]
+#+END_SRC
