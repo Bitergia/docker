@@ -3,8 +3,22 @@
 declare -a ssh_opts=(StrictHostKeyChecking=no UserKnownHostsFile=/dev/null)
 default_ssh_keyfile="${HOME}/.ssh/bitergia-docker"
 
-function usage() {
-    echo "Usage: $(basename $0) [ssh options] <user>@<container-id> [command]"
+# defaults to ssh mode
+mode=ssh
+
+_progname=$( basename $0 )
+if [[ ${_progname} =~ docker-scp ]] ; then
+    mode=scp
+fi
+
+function usage_ssh() {
+    echo "Usage: ${_progname} [ssh options] <user>@<container-id> [command]"
+    exit 1
+}
+
+function usage_scp() {
+    echo "Usage: ${_progname} [scp options] [local-path] <user>@<container-id>:[remote-path]"
+    echo "       ${_progname} [scp options] <user>@<container-id>:[remote-path] [local-path]"
     exit 1
 }
 
@@ -24,21 +38,36 @@ function add_ssh_key () {
     echo -n "${params}"
 }
 
-if [ $# -lt 1 ]; then
-    usage
-fi
-
-if [[ "$*" =~ @([^\ ]+)\ *  ]]; then
-    container_id=${BASH_REMATCH[1]}
-fi
+case ${mode} in
+    ssh)
+	if [ $# -lt 1 ]; then
+	    usage_ssh
+	fi
+	if [[ "$*" =~ @([^\ ]+)\ *  ]]; then
+	    container_id=${BASH_REMATCH[1]}
+	fi
+	;;
+    scp)
+	if [ $# -lt 2 ]; then
+	    usage_scp
+	fi
+	if [[ "$*" =~ @([^:]+):*  ]]; then
+	    container_id=${BASH_REMATCH[1]}
+	fi
+	;;
+    *)
+	# should not reach this point
+	echo "Unknown mode: $mode"
+	exit 1
+	;;
+esac
 
 # get container IP
 container_ip=$( docker inspect -f "{{ .NetworkSettings.IPAddress }}" ${container_id} )
 
 # replace container ID with container IP
-
 params=$( echo "$*" | sed -e "s/@${container_id}/@${container_ip}/g" )
 ssh_params=$(set_ssh_opts)
 params=$(add_ssh_key ${params})
 
-exec ssh ${ssh_params} ${params}
+exec ${mode} ${ssh_params} ${params}
