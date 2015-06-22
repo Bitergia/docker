@@ -72,7 +72,7 @@ Usage: ./get-docker-hosts [options]
 
 Default behaviour is to dump to stdout the lines to add.
 
-#+BEGIN_ASCII
+#+BEGIN_EXAMPLE
 ### BEGIN Docker container IPs ###
 172.17.0.7    compose_chanchanapp_1
 172.17.0.6    compose_idas_1 idas idas_1
@@ -81,7 +81,7 @@ Default behaviour is to dump to stdout the lines to add.
 172.17.0.3    compose_orion_1 orion orion_1
 172.17.0.2    compose_mongodb_1 mongodb mongodb_1
 ### END Docker container IPs ###
-#+END_ASCII
+#+END_EXAMPLE
 
 Use the --hosts-file parameter to specify another file instead of
 /etc/hosts (i.e. for testing).
