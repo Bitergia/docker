@@ -1,0 +1,150 @@
+#!/bin/bash
+version="0.1"
+
+hosts_file=/etc/hosts
+begin_tag="### BEGIN Docker container IPs ###"
+end_tag="### END Docker container IPs ###"
+modify_hosts=0
+
+function _log () {
+
+    local _message="$*"
+    local _date=$( /bin/date "+%Y/%m/%d %H:%M:%S %z" )
+
+    # log message
+    echo -e "${_date}\t${_message}"
+}
+
+function _error () {
+
+    local _message="$*"
+
+    _log "ERROR: ${_message}"
+}
+
+function _warning () {
+
+    local _message="$*"
+
+    _log "WARNING: ${_message}"
+}
+
+function _debug () {
+
+    local _message="$*"
+
+    if [ ${_debug} -ne 0 ]; then
+        _log "DEBUG: [${_program_name}] ${_message}"
+    fi
+}
+
+function show_version () {
+    cat <<EOF
+$0 version ${version}
+EOF
+exit 0
+}
+
+function usage () {
+    cat <<EOF
+Usage: $0 [options]
+
+  -h  --help                 Show this help.
+  -v  --version              Show program version.
+
+  Optional parameters:
+
+  -m  --modify-hosts         Modify the system /etc/hosts file (requires root permission)
+  -f  --hosts-file <file>    Specify the hosts file to modify (defaults to /etc/hosts)
+EOF
+exit 0
+}
+
+
+function parse_options () {
+    TEMP=`getopt -o hvmf: -l help,version,modify-hosts,hosts-file: -- "$@"`
+    if test "$?" -ne 0; then
+        usage
+    fi
+    eval set -- "$TEMP"
+    while true ; do
+        case "$1" in
+            -h|--help)
+                usage
+                ;;
+            -v|--version)
+                show_version
+                ;;
+            -m|--modify-hosts)
+                modify_hosts="1"
+                ;;
+	    -f|--hosts-file)
+		shift
+		hosts_file="$1"
+		;;
+            --|*)
+                break;
+                ;;
+        esac
+        shift
+    done
+    shift
+}
+
+function check_root () {
+    if [ "$( whoami )" != "root" ] ; then
+	echo "Only root is allowed to modify ${hosts_file}"
+	echo "Run the script as root or use an alternate method like sudo"
+	exit 1
+    fi
+}
+
+function get_extra_aliases () {
+    local host="$1"
+    local alias=$( cat ${hosts_file} | grep "\(^\|[ ]\)${host}\([ ]\|$\)" | sed -e 's/^[^ \t]\+[ \t]\+//g' | tr '\n' ' ' | sed -e "s/\(^\|[ ]\)${host}\([ ]\|$\)/ /g" | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' -e 's/[ ]\+/ /g' | tr ' ' '\n' | sort -u | sed -e 's/^[ ]*$//g' )
+    [ -n "${alias}" ] && echo $alias
+}
+
+function backup_file () {
+    local file="$1"
+    local backup_file="${file}.$( date +%Y%m%d.%H%M%S )"
+    _log "Backing up ${file} to ${backup_file}"
+    cp "${file}" "${backup_file}" || _error "Failed to copy ${hosts_file} to ${bkp_file}"
+}
+
+
+parse_options "$@"
+
+# get names of running containers
+containers=( $( docker ps -a -q --no-trunc ) )
+running=( $( docker inspect --format "{{if .State.Running}}{{.Id}}{{end}}" "${containers[@]}" ) )
+names=( $( docker inspect --format '{{.Name}}' "${running[@]}" ) )
+names=( "${names[@]#/}" )
+
+# get aliases from links
+aliases=$( docker inspect -f "{{ .HostConfig.Links }}" "${names[@]}" | grep -v -F "<no value>" | tr ' ' '\n' | sed -e 's/^\[//g' -e 's/\]$//g' -e 's|:/[^/]\+/|:|g' -e 's|/||g' -e '/^\([^:]\+\):\1/ d' | sort -u )
+
+# dump hosts info
+new_hosts=$( for name in "${names[@]}" ; do
+		 ip=$( docker inspect -f "{{ .NetworkSettings.IPAddress }}" ${name} )
+		 links=$( echo "${aliases}" | grep "^${name}:" | cut -d ':' -f 2- | tr '\n' ' ')
+		 extra=$( get_extra_aliases "${name}" )
+		 if [ -n "$links" -o -n "$extra" ]; then
+		     alias=$( echo $links $extra | tr ' ' '\n' | sort -u | sed -e 's/^[ ]*$//g' | tr '\n' ' ' )
+		 fi
+		 echo "${ip}    ${name} ${alias}" | sed -e 's/[ ]*$//g'
+	     done )
+
+if [ ${modify_hosts} -eq 1 ]; then
+    if [ "${hosts_file}" = "/etc/hosts" ]; then
+	check_root
+    fi
+    backup_file "${hosts_file}"
+    _log "Modifying ${hosts_file}"
+    if grep -q "^${begin_tag}" "${hosts_file}" ; then
+	sed -e "/^${begin_tag}\$/,/^${end_tag}\$/{d}" -i "${hosts_file}"
+    fi
+    echo -e "${begin_tag}\n${new_hosts}\n${end_tag}" >> "${hosts_file}"
+else
+    echo -e "${begin_tag}\n${new_hosts}\n${end_tag}"
+fi

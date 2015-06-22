@@ -49,3 +49,44 @@ Helper script to obtain the IP address of a running container.
 #+BEGIN_SRC shell-script
 get-container-ip <container-id>
 #+END_SRC
+
+* get-docker-hosts
+
+Helper script to add the running containers to /etc/hosts or update
+the existing info.  The script will add any alias generated via docker
+links and try to preserve any other alias that may already exist on
+the file for the same container name.
+
+#+BEGIN_SRC shell-script
+$ ./get-docker-hosts -h
+Usage: ./get-docker-hosts [options]
+
+  -h  --help                 Show this help.
+  -v  --version              Show program version.
+
+  Optional parameters:
+
+  -m  --modify-hosts         Modify the system /etc/hosts file (requires root permission)
+  -f  --hosts-file <file>    Specify the hosts file to modify (defaults to /etc/hosts)
+#+END_SRC
+
+Default behaviour is to dump to stdout the lines to add.
+
+#+BEGIN_ASCII
+### BEGIN Docker container IPs ###
+172.17.0.7    compose_chanchanapp_1
+172.17.0.6    compose_idas_1 idas idas_1
+172.17.0.5    compose_cygnus_1 cygnus cygnus_1
+172.17.0.4    compose_idmauthlegacy_1 idmauthlegacy idmauthlegacy_1
+172.17.0.3    compose_orion_1 orion orion_1
+172.17.0.2    compose_mongodb_1 mongodb mongodb_1
+### END Docker container IPs ###
+#+END_ASCII
+
+Use the --hosts-file parameter to specify another file instead of
+/etc/hosts (i.e. for testing).
+
+To modify the /etc/hosts file you must use the --modify-hosts
+parameter and have root permission (i.e. via sudo).  The script will
+try to make a backup copy of the file prior to modifying it,
+cancelling the operation if the copy fails.
