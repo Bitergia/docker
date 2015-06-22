@@ -41,3 +41,11 @@ docker-scp [scp options] <user>@<container-id>:path/to/remote/files path/to/loca
 #+BEGIN_SRC shell-script
 docker-scp [scp options] path/to/local/files <user>@<container-id>:path/to/remote/files
 #+END_SRC
+
+* get-container-ip
+
+Helper script to obtain the IP address of a running container.
+
+#+BEGIN_SRC shell-script
+get-container-ip <container-id>
+#+END_SRC

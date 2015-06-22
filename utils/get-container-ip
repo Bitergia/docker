@@ -1,0 +1,17 @@
+#!/bin/bash
+
+_progname=$( basename $0 )
+
+function usage () {
+    echo "Usage: ${_progname} <container-id>"
+    exit 1
+}
+
+if [ $# -lt 1 ]; then
+    usage
+fi
+
+container_id=$1
+container_ip=$( docker inspect -f "{{ .NetworkSettings.IPAddress }}" ${container_id} )
+
+echo ${container_ip}
