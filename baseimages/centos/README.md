@@ -1,23 +1,24 @@
-# Ubuntu minimal base image
+# CentOS minimal base image
 
-Ubuntu base image containing only essential components.
+CentOS base image containing only essential components.
 
 ## Requirements
 
-* Debootstrap. For installing debian-based systems. 
+* Rinse. For installing RPM-based distribution. 
 * Operating system: the following scripts have been tested on Debian based systems such as:
     * Ubuntu >= 14.04
     * Debian >= 8.0 
 
 ## Contents
 
-- [x] Ubuntu 14.04 LTS
+- [x] CentOS 6 (last available)
 - [x] Upstart init system
-- [x] SSH server
+- [x] SSH server 
+- [x] EPEL repository enabled
 - [x] Default locale set to `en_US.utf8`
-- [x] Extra utilities: tree less nano curl tar gzip unzip ncurses-base ca-certificates
-- [x] Fixes APT incompatibilities with Docker. See [the following issue](https://github.com/dotcloud/docker/issues/1024) for more information
-- [x] In-Container Upstart Fake Events. Needed for correct startup of other services. See [script](https://github.com/tianon/dockerfiles/blob/master/sbin-init/ubuntu/upstart/init-fake.conf)
+- [x] Extra utilities: tree less nano curl tar gzip unzip ncurses-base which
+- [x] SELinux disabled
+- [x] Trigger an immediate shutdown when upstart receives SIGPWR. Find [here](https://github.com/Bitergia/docker/blob/master/baseimages/centos/shutdown.conf) the script
 - [x] Non root user `bitergia` with `sudo` privileges (needed for SSH access)
 
 ## Stopping the container
@@ -61,7 +62,7 @@ You can always create a new SSH insecure key. You just need to remove the `biter
 
 ## Building the image
 
-For building the image yourself, you will need to use `sudo` to execute it (needed for debootstrap).
+For building the image yourself, you will need to use `sudo` to execute it (needed for rinse).
 
 Clone this repository:
 
@@ -79,7 +80,7 @@ This will force the generation of a new ssh keypair.
 Build the image:
 
 ```
-sudo make ubuntu
+sudo make centos
 ```
 
 And that's it! Enjoy! :)
