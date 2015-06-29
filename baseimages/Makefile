@@ -1,5 +1,5 @@
 insecure-ssh-key = bitergia-docker
-public-insecure-ssh-key = bitergia-docker.pub
+public-insecure-ssh-key = $(insecure-ssh-key).pub
 
 .PHONY: help
 help:
@@ -47,7 +47,7 @@ $(insecure-ssh-key):
 	@$(MAKE) ssh_generate_insecure_key
 
 ssh_generate_insecure_key:
-	ssh-keygen -t rsa -f $(insecure-ssh-key) -q -N ""
+	ssh-keygen -t rsa -f $(insecure-ssh-key) -q -N "" -C "bitergia-baseimage-insecure-key"
 	chown $(shell logname): $(insecure-ssh-key)*
 	$(info Copy $(insecure-ssh-key)* to ~/.ssh )
 	$(info Use "ssh -i ~/.ssh/$(insecure-ssh-key) bitergia@Container_IP" when trying to log into the container via ssh)
