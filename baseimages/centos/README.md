@@ -2,6 +2,17 @@
 
 CentOS base image containing only essential components.
 
+**Table of Contents** 
+
+- [CentOS minimal base image](#centos-minimal-base-image)
+  - [Requirements](#requirements)
+  - [Image contents](#image-contents)
+  - [Building the image](#building-the-image)
+  - [Stopping the container](#stopping-the-container)
+  - [About SSH](#about-ssh)
+    - [Using your own SSH key](#using-your-own-ssh-key)
+    - [Generate new SSH key](#generate-new-ssh-key)
+
 ## Requirements
 
 * Rinse. For installing RPM-based distribution. 
@@ -9,7 +20,7 @@ CentOS base image containing only essential components.
     * Ubuntu >= 14.04
     * Debian >= 8.0 
 
-## Contents
+## Image contents
 
 - [x] CentOS 6 (last available)
 - [x] Upstart init system
@@ -20,6 +31,31 @@ CentOS base image containing only essential components.
 - [x] SELinux disabled
 - [x] Trigger an immediate shutdown when upstart receives SIGPWR. Find [here](https://github.com/Bitergia/docker/blob/master/baseimages/centos/shutdown.conf) the script
 - [x] Non root user `bitergia` with `sudo` privileges (needed for SSH access)
+
+## Building the image
+
+For building the image yourself, you will need to use `sudo` to execute it (needed for rinse).
+
+Clone this repository:
+
+```
+git clone https://github.com/Bitergia/docker.git
+cd docker/baseimages
+```
+[Optional] Remove pre-generated SSH keys:
+
+```
+rm bitergia-docker bitergia-docker.pub
+```
+This will force the generation of a new ssh keypair.
+
+Build the image:
+
+```
+sudo make centos
+```
+
+And that's it!
 
 ## Stopping the container
 
@@ -60,27 +96,4 @@ docker/baseimages
 
 You can always create a new SSH insecure key. You just need to remove the `bitergia-docker` and `bitergia-docker.pub` files and use the [Makefile](https://github.com/Bitergia/docker/blob/master/baseimages/Makefile#L49) again to generate your image.
 
-## Building the image
 
-For building the image yourself, you will need to use `sudo` to execute it (needed for rinse).
-
-Clone this repository:
-
-```
-git clone https://github.com/Bitergia/docker.git
-cd docker/baseimages
-```
-[Optional] Remove pre-generated SSH keys:
-
-```
-rm bitergia-docker bitergia-docker.pub
-```
-This will force the generation of a new ssh keypair.
-
-Build the image:
-
-```
-sudo make centos
-```
-
-And that's it! Enjoy! :)
