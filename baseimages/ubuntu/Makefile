@@ -27,6 +27,7 @@ rootfs-fixes = \
 	fix-sources-list \
 	fix-locales \
 	disable-apt-recommends \
+	enable-apt-index-compression \
 	disable-unwanted-files \
 	fix-initctl \
 	update-packages \
@@ -55,7 +56,7 @@ all: build
 
 build: $(ROOTFS).tar
 	docker build -t bitergia/$(dist-name) .
-	-docker tag bitergia/$(dist-name) bitergia/$(dist-name):latest
+	-docker tag -f bitergia/$(dist-name) bitergia/$(dist-name):latest
 	-docker tag bitergia/$(dist-name) bitergia/$(dist-name):${arch}
 	-docker tag bitergia/$(dist-name) bitergia/$(dist-name):${imgdate}
 
@@ -105,6 +106,10 @@ disable-apt-recommends:
 	# disable apt recommends
 	@$(bash_chroot_cmd) "echo 'APT::Install-Recommends \"0\";' >> /etc/apt/apt.conf.d/90recommends"
 	@$(bash_chroot_cmd) "echo 'Aptitude::Recommends-Important \"false\";' >> /etc/apt/apt.conf.d/90recommends"
+
+enable-apt-index-compression:
+	@$(bash_chroot_cmd) "echo 'Acquire::GzipIndexes \"true\";' >> /etc/apt/apt.conf.d/10compress-indexes"
+	@$(bash_chroot_cmd) "echo 'Acquire::CompressionTypes::Order:: \"gz\";' >> /etc/apt/apt.conf.d/10compress-indexes"
 
 disable-unwanted-files:
 	# avoid unwanted locales and other files
