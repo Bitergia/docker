@@ -15,7 +15,7 @@ whoami = $(shell whoami)
 chroot_cmd = chroot ./$(ROOTFS)
 bash_chroot_cmd = $(chroot_cmd) bash -c
 
-extra-utilities = tree less nano curl tar gzip unzip ncurses-base which
+extra-utilities = tree less nano curl tar gzip unzip ncurses-base which nc
 rootfs-fixes = \
 	update-packages \
 	add-epel-repository \

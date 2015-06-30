@@ -27,7 +27,7 @@ CentOS base image containing only essential components.
 - [x] SSH server 
 - [x] EPEL repository enabled
 - [x] Default locale set to `en_US.utf8`
-- [x] Extra utilities: tree less nano curl tar gzip unzip ncurses-base which
+- [x] Extra utilities: tree less nano curl tar gzip unzip ncurses-base which nc
 - [x] SELinux disabled
 - [x] Trigger an immediate shutdown when upstart receives SIGPWR. Find [here](https://github.com/Bitergia/docker/blob/master/baseimages/centos/shutdown.conf) the script
 - [x] Non root user `bitergia` with `sudo` privileges (needed for SSH access)
