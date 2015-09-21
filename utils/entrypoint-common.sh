@@ -120,5 +120,42 @@ function check_var () {
     fi
 }
 
+function check_file () {
+
+    local _tries=0
+    local _is_available=0
+
+    local _file=$1
+    local _max_tries=${2:-${DEFAULT_MAX_TRIES}}
+    local ret=0
+
+    echo "Testing if file '${_file}' is available."
+
+    while [ ${_tries} -lt ${_max_tries} -a ${_is_available} -eq 0 ] ; do
+        echo -n "Checking file '${_file}' [try $(( ${_tries} + 1 ))/${_max_tries}] ... "
+        if [ -r ${_file} ] ; then
+            echo "OK."
+            _is_available=1
+        else
+            sleep 1
+            _tries=$(( ${_tries} + 1 ))
+            if [ ${_tries} -lt ${_max_tries} ] ; then
+                echo "Retrying."
+            else
+                echo "Failed."
+            fi
+        fi
+    done
+
+    if [ ${_is_available} -eq 0 ] ; then
+        echo "Failed to to retrieve '${_file}' after ${_tries} tries."
+        echo "File is unavailable."
+        ret=1
+    else
+        echo "File '${_file}' is available."
+    fi
+    return $ret
+}
+
 # set DEFAULT_MAX_TRIES
 check_var DEFAULT_MAX_TRIES 60

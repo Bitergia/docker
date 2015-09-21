@@ -141,6 +141,15 @@ specified and <variable> is undefined, it defines <variable> with
 You can use this function to check for specific variables to be
 defined and assign default values to them.
 
+*** check_file <file> [max-tries]
+
+Checks that <file> exists and has read permission.  If no
+<max-tries> is specified, it uses the value specified by
+DEFAULT_MAX_TRIES environment variable.
+
+You can use this function to wait for the existance of a <file> and
+that it is readable.
+
 ** Available variables
 
 *** DEFAULT_MAX_TRIES
