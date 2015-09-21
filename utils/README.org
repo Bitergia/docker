@@ -90,3 +90,60 @@ To modify the /etc/hosts file you must use the --modify-hosts
 parameter and have root permission (i.e. via sudo).  The script will
 try to make a backup copy of the file prior to modifying it,
 cancelling the operation if the copy fails.
+
+* entrypoint-common.sh
+
+This script contains some common functions used on the
+docker-entrypoint.sh scripts of our containers.
+
+To use this functions, add the following line to the docker-entrypoint.sh script:
+#+BEGIN_EXAMPLE
+source /entrypoint-common.sh
+#+END_EXAMPLE
+
+And import the file into the docker image by adding this line to the Dockerfile:
+#+BEGIN_EXAMPLE
+ADD https://raw.githubusercontent.com/Bitergia/docker/master/utils/entrypoint-common.sh /
+#+END_EXAMPLE
+
+** Available functions
+
+*** check_host_port <host> <port> [max-tries]
+
+Checks that <port> on <host> is open.  If no <max-tries> is specified,
+it uses the value specified by DEFAULT_MAX_TRIES environment variable.
+
+This function uses nc (netcat) to do the check, waiting 1 second
+between each consecutive retry.
+
+You can use this function to wait for a <port> on <host> to be open
+before doing something else.
+
+*** check_url <url> <regex> [max-tries]
+
+Checks that the data returned from <url> matches <regex>.  If no
+<max-tries> is specified, it uses the value specified by
+DEFAULT_MAX_TRIES environment variable.
+
+This function uses curl to retrieve the <url>, waiting 1 second
+between each consecutive retry.
+
+You can use this funcion to wait for a web server to be ready by
+checking the data returned for a specific <url> contains <regex>.
+
+*** check_var <variable> [default-value]
+
+Checks that <variable> is defined.  If no <default-value> is specified
+and <variable> is undefined, it fails.  If <default-value> is
+specified and <variable> is undefined, it defines <variable> with
+<default-value>.  If <variable> is defined, it leaves it untouched.
+
+You can use this function to check for specific variables to be
+defined and assign default values to them.
+
+** Available variables
+
+*** DEFAULT_MAX_TRIES
+
+Defines the default maximum number of tries for the previous
+functions.  Default value is 60.
