@@ -129,8 +129,9 @@ new_hosts=$( for name in "${names[@]}" ; do
 		 ip=$( docker inspect -f "{{ .NetworkSettings.IPAddress }}" ${name} )
 		 links=$( echo "${aliases}" | grep "^${name}:" | cut -d ':' -f 2- | tr '\n' ' ')
 		 extra=$( get_extra_aliases "${name}" )
-		 if [ -n "$links" -o -n "$extra" ]; then
-		     alias=$( echo $links $extra | tr ' ' '\n' | sort -u | sed -e 's/^[ ]*$//g' | tr '\n' ' ' )
+                 hostname=$( docker inspect -f "{{.Config.Hostname}}" "${name}" )
+		 if [ -n "$links" -o -n "$extra" -o -n "$hostname" ]; then
+		     alias=$( echo $links $extra $hostname | tr ' ' '\n' | sort -u | sed -e 's/^[ ]*$//g' | tr '\n' ' ' )
 		 fi
 		 echo "${ip}    ${name} ${alias}" | sed -e 's/[ ]*$//g'
 	     done )
