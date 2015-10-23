@@ -118,34 +118,37 @@ parse_options "$@"
 # get names of running containers
 containers=( $( docker ps -a -q --no-trunc ) )
 running=( $( docker inspect --format "{{if .State.Running}}{{.Id}}{{end}}" "${containers[@]}" ) )
-names=( $( docker inspect --format '{{.Name}}' "${running[@]}" ) )
-names=( "${names[@]#/}" )
-
-# get aliases from links
-aliases=$( docker inspect -f "{{ .HostConfig.Links }}" "${names[@]}" | grep -v -F "<no value>" | tr ' ' '\n' | sed -e 's/^\[//g' -e 's/\]$//g' -e 's|:/[^/]\+/|:|g' -e 's|/||g' -e '/^\([^:]\+\):\1/ d' | sort -u )
-
-# dump hosts info
-new_hosts=$( for name in "${names[@]}" ; do
-                 ip=$( docker inspect -f "{{ .NetworkSettings.IPAddress }}" ${name} )
-                 links=$( echo "${aliases}" | grep "^${name}:" | cut -d ':' -f 2- | tr '\n' ' ')
-                 extra=$( get_extra_aliases "${name}" )
-                 hostname=$( docker inspect -f "{{.Config.Hostname}}" "${name}" )
-                 if [ -n "$links" -o -n "$extra" -o -n "$hostname" ]; then
-                     alias=$( echo $links $extra $hostname | tr ' ' '\n' | sort -u | sed -e 's/^[ ]*$//g' | tr '\n' ' ' )
-                 fi
-                 echo "${ip}    ${name} ${alias}" | sed -e 's/[ ]*$//g'
-             done )
-
-if [ ${modify_hosts} -eq 1 ]; then
-    if [ "${hosts_file}" = "/etc/hosts" ]; then
-        check_root
-    fi
-    backup_file "${hosts_file}"
-    _log "Modifying ${hosts_file}"
-    if grep -q "^${begin_tag}" "${hosts_file}" ; then
-        sed -e "/^${begin_tag}\$/,/^${end_tag}\$/{d}" -i "${hosts_file}"
-    fi
-    echo -e "${begin_tag}\n${new_hosts}\n${end_tag}" >> "${hosts_file}"
+if [ -z "${running}" ]; then
+    echo "No containers running."
 else
-    echo -e "${begin_tag}\n${new_hosts}\n${end_tag}"
+    names=( $( docker inspect --format '{{.Name}}' "${running[@]}" ) )
+    names=( "${names[@]#/}" )
+    # get aliases from links
+    aliases=$( docker inspect -f "{{ .HostConfig.Links }}" "${names[@]}" | grep -v -F "<no value>" | tr ' ' '\n' | sed -e 's/^\[//g' -e 's/\]$//g' -e 's|:/[^/]\+/|:|g' -e 's|/||g' -e '/^\([^:]\+\):\1/ d' | sort -u )
+
+    # dump hosts info
+    new_hosts=$( for name in "${names[@]}" ; do
+                     ip=$( docker inspect -f "{{ .NetworkSettings.IPAddress }}" ${name} )
+                     links=$( echo "${aliases}" | grep "^${name}:" | cut -d ':' -f 2- | tr '\n' ' ')
+                     extra=$( get_extra_aliases "${name}" )
+                     hostname=$( docker inspect -f "{{.Config.Hostname}}" "${name}" )
+                     if [ -n "$links" -o -n "$extra" -o -n "$hostname" ]; then
+                         alias=$( echo $links $extra $hostname | tr ' ' '\n' | sort -u | sed -e 's/^[ ]*$//g' | tr '\n' ' ' )
+                     fi
+                     echo "${ip}    ${name} ${alias}" | sed -e 's/[ ]*$//g'
+                 done )
+
+    if [ ${modify_hosts} -eq 1 ]; then
+        if [ "${hosts_file}" = "/etc/hosts" ]; then
+            check_root
+        fi
+        backup_file "${hosts_file}"
+        _log "Modifying ${hosts_file}"
+        if grep -q "^${begin_tag}" "${hosts_file}" ; then
+            sed -e "/^${begin_tag}\$/,/^${end_tag}\$/{d}" -i "${hosts_file}"
+        fi
+        echo -e "${begin_tag}\n${new_hosts}\n${end_tag}" >> "${hosts_file}"
+    else
+        echo -e "${begin_tag}\n${new_hosts}\n${end_tag}"
+    fi
 fi
