@@ -78,10 +78,10 @@ function parse_options () {
             -m|--modify-hosts)
                 modify_hosts="1"
                 ;;
-	    -f|--hosts-file)
-		shift
-		hosts_file="$1"
-		;;
+            -f|--hosts-file)
+                shift
+                hosts_file="$1"
+                ;;
             --|*)
                 break;
                 ;;
@@ -93,9 +93,9 @@ function parse_options () {
 
 function check_root () {
     if [ "$( whoami )" != "root" ] ; then
-	echo "Only root is allowed to modify ${hosts_file}"
-	echo "Run the script as root or use an alternate method like sudo"
-	exit 1
+        echo "Only root is allowed to modify ${hosts_file}"
+        echo "Run the script as root or use an alternate method like sudo"
+        exit 1
     fi
 }
 
@@ -126,24 +126,24 @@ aliases=$( docker inspect -f "{{ .HostConfig.Links }}" "${names[@]}" | grep -v -
 
 # dump hosts info
 new_hosts=$( for name in "${names[@]}" ; do
-		 ip=$( docker inspect -f "{{ .NetworkSettings.IPAddress }}" ${name} )
-		 links=$( echo "${aliases}" | grep "^${name}:" | cut -d ':' -f 2- | tr '\n' ' ')
-		 extra=$( get_extra_aliases "${name}" )
+                 ip=$( docker inspect -f "{{ .NetworkSettings.IPAddress }}" ${name} )
+                 links=$( echo "${aliases}" | grep "^${name}:" | cut -d ':' -f 2- | tr '\n' ' ')
+                 extra=$( get_extra_aliases "${name}" )
                  hostname=$( docker inspect -f "{{.Config.Hostname}}" "${name}" )
-		 if [ -n "$links" -o -n "$extra" -o -n "$hostname" ]; then
-		     alias=$( echo $links $extra $hostname | tr ' ' '\n' | sort -u | sed -e 's/^[ ]*$//g' | tr '\n' ' ' )
-		 fi
-		 echo "${ip}    ${name} ${alias}" | sed -e 's/[ ]*$//g'
-	     done )
+                 if [ -n "$links" -o -n "$extra" -o -n "$hostname" ]; then
+                     alias=$( echo $links $extra $hostname | tr ' ' '\n' | sort -u | sed -e 's/^[ ]*$//g' | tr '\n' ' ' )
+                 fi
+                 echo "${ip}    ${name} ${alias}" | sed -e 's/[ ]*$//g'
+             done )
 
 if [ ${modify_hosts} -eq 1 ]; then
     if [ "${hosts_file}" = "/etc/hosts" ]; then
-	check_root
+        check_root
     fi
     backup_file "${hosts_file}"
     _log "Modifying ${hosts_file}"
     if grep -q "^${begin_tag}" "${hosts_file}" ; then
-	sed -e "/^${begin_tag}\$/,/^${end_tag}\$/{d}" -i "${hosts_file}"
+        sed -e "/^${begin_tag}\$/,/^${end_tag}\$/{d}" -i "${hosts_file}"
     fi
     echo -e "${begin_tag}\n${new_hosts}\n${end_tag}" >> "${hosts_file}"
 else
