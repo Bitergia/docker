@@ -76,7 +76,7 @@ function check_url () {
     local _max_tries=${3:-${DEFAULT_MAX_TRIES}}
     local CURL=$( which curl )
 
-    if [ ! -e ${CURL} ] ; then
+    if [ ! -e "${CURL}" ] ; then
         echo "Unable to find 'curl' command."
         exit 1
     fi
