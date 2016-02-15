@@ -91,6 +91,22 @@ function parse_options () {
     shift
 }
 
+function check_os () {
+    local os=$( uname )
+
+    if [ "${os}" = "Darwin" ] ; then
+        _log "OS: Mac OS X"
+        hosts_file="/private/etc/hosts"
+    elif [ "${os}" = "Linux" ] ; then
+        _log "OS: Linux"
+        hosts_file="/etc/hosts"
+    else
+        _error "Unsupported OS: '${os}'"
+        exit 1
+    fi
+    _log "Using hosts file '${hosts_file}'"
+}
+
 function check_root () {
     if [ "$( whoami )" != "root" ] ; then
         echo "Only root is allowed to modify ${hosts_file}"
@@ -112,7 +128,7 @@ function backup_file () {
     cp "${file}" "${backup_file}" || _error "Failed to copy ${hosts_file} to ${bkp_file}"
 }
 
-
+check_os
 parse_options "$@"
 
 # get names of running containers
