@@ -133,6 +133,11 @@ parse_options "$@"
 
 # get names of running containers
 containers=( $( docker ps -a -q --no-trunc ) )
+if [ "${#containers[@]}" -eq 0 ] ; then
+    _log "No containers found."
+    _log "Will NOT modify hosts file."
+    exit 0
+fi
 running=( $( docker inspect --format "{{if .State.Running}}{{.Id}}{{end}}" "${containers[@]}" ) )
 if [ -z "${running}" ]; then
     echo "No containers running."
